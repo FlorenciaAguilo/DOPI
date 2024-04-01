@@ -40,31 +40,31 @@ def on_key_press(e):
 
 # mPrediccion de vista. Permite identificar si el movimiento es valido o no
     if e.name=="f":
-        prediccion=0
+        prediccion=False
     if e.name=="g":
-        prediccion=1
+        prediccion=True
 
 # Vistas
 
-    if e.name=="1":
-        marcador="PEL"
-        nombre=""
+    # if e.name=="1":
+    #     marcador="PEL"
+    #     nombre=""
         
-    if e.name=="2":
-        marcador="PEC"
-        nombre=""
+    # if e.name=="2":
+    #     marcador="PEC"
+    #     nombre=""
         
-    if e.name=="3":
-        marcador="APICAL"
-        nombre=""
+    # if e.name=="3":
+    #     marcador="APICAL"
+    #     nombre=""
         
-    if e.name=="4":
-        marcador="SUBCOSTAL"
-        nombre=""
+    # if e.name=="4":
+    #     marcador="SUBCOSTAL"
+    #     nombre=""
         
-    if e.name=="5":
-        marcador="SET"
-        nombre="SET"
+    # if e.name=="5":
+    #     marcador="SET"
+    #     nombre="SET"
         
 
 # Permite simular los distintos movimientos de las distintas vistas 
@@ -226,7 +226,7 @@ async def enviar_mensaje_a_clientes(mensaje, clientes):
 
 async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
-    global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico
+    global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
     clientes.add(websocket)
 
 
@@ -293,10 +293,16 @@ async def handle_client(websocket,path):
                         # mensaje_frontend['status']=mensaje_transductor['status']
                         # mensaje_frontend['Nombre_movimiento']=mensaje_transductor['Nombre_movimiento']
                     if 'patologia' in mensaje_frontend:
+
                         patologico=mensaje_frontend['patologia']                   
                         marcador=mensaje_frontend['marcador']              
                         IDvideo=mensaje_frontend['IDvideo']
                         f=mensaje_frontend['btn']
+
+                        if mensaje_frontend['Nombre_movimiento']!="":
+                            nombre=mensaje_frontend['Nombre_movimiento']
+                            
+
 
                         mensaje=dato
                         m=json.dumps(mensaje)

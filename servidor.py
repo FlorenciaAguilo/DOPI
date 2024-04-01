@@ -163,14 +163,39 @@ def convertir_a_lista(obj):
         return {'__es_lista__': True, 'datos': obj}
     return obj
 
+#holaaaaaaaaaaa
+
+# def cargar_ML_plano(clave,otracarpeta):
+#     global cantidad_videos,superior
+#     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
+
+#     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
+#     #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
+#     cantidad_videos=contar_elementos_carpeta(escritorio)
+
+#     superior=cantidad_videos
+#     # Recorre los archivos en el directorio
+#     for raiz, carpetas, archivos in os.walk(escritorio):
+#         for nombre_archivo in archivos:
+#             if clave in nombre_archivo:
+#                 # Imprime el nombre completo del archivo que contiene la palabra buscada
+#                 nombre_completo = os.path.join(raiz, nombre_archivo)
+#                 return nombre_completo
+#                 #print(nombre_completo)
+
 def cargar_ML_plano(clave,otracarpeta):
     global cantidad_videos,superior
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
 
     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
     #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
+        # Verifica si la carpeta existe
+    if not os.path.exists(escritorio):
+        print(f"La carpeta '{escritorio}' no existe.")
+        return None
+    
     cantidad_videos=contar_elementos_carpeta(escritorio)
-
+    
     superior=cantidad_videos
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
@@ -180,6 +205,9 @@ def cargar_ML_plano(clave,otracarpeta):
                 nombre_completo = os.path.join(raiz, nombre_archivo)
                 return nombre_completo
                 #print(nombre_completo)
+        # Si no se encuentra el archivo, devuelve None
+    print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
+    return None
 
 
 def contar_elementos_carpeta(ruta):

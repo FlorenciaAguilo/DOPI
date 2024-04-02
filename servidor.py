@@ -23,11 +23,18 @@ marcador=""
 patologico=False
 tipo=""
 
-IDvideo=0 # sirve para acceder a cada video en una carpeta dada
+IDvideo=1 # sirve para acceder a cada video en una carpeta dada
 carpeta="" # sirve para acceder a la carpeta de videos de una vista en especifico
 modo=""    #modo de la imagen 
 
 contador=0
+superior=0
+
+cantidad_videos=0
+nombre_archivos=""
+nombre_modos=""
+
+
 
 ruta=""
 dato ={'dirVideo': ruta,'patologia': patologico,'status': prediccion,'Nombre_movimiento': nombre,'marcador': marcador,'IDvideo':IDvideo,'btn': f}
@@ -35,7 +42,7 @@ llaves_a_incluir = ['dirVideo', 'status', 'Nombre_movimiento','marcador']
 
 def on_key_press(e):
     global f, data,dato, prediccion, nombre,marcador,modo,IDvideo,carpeta, ruta, contador,key_pressed, key_pressed1
-    global cantidad_videos, inferior, superior, bandera,patologico,tipo
+    global cantidad_videos, inferior, superior, bandera,patologico,tipo,superior,nombre_archivos,nombre_modos
     contador=0    
 
 # mPrediccion de vista. Permite identificar si el movimiento es valido o no
@@ -45,7 +52,25 @@ def on_key_press(e):
         prediccion=True
 
 # Vistas
-
+        # Modo 
+    if f==0:
+         #modo Bidimensional
+        modo="Bidimensional"
+    if f==1:
+         #modo doppler color
+        modo="Modo Doppler Color"
+    if f==2:
+         #modo doppler pulsado
+        modo="Modo Doppler Pulsado"
+    if f==3:
+         #modo doppler continuo
+        modo="Modo Doppler Continuo"
+    if f==4:
+         #modo doppler tisular
+        modo="Modo Doppler Tisular"
+    if f==5:
+         #modo M
+        modo="Modo M"
     # if e.name=="1":
     #     marcador="PEL"
     #     nombre=""
@@ -156,7 +181,11 @@ def on_key_press(e):
 
     dato['dirVideo']=ruta
     dato['IDvideo']=IDvideo
-
+    
+    # if superior!=0 and nombre_archivos!="":
+    #     print("Número total de elementos:", superior)
+    #     print("Nombres de elementos:", nombre_archivos)
+    
 # Función de conversión para manejar listas
 def convertir_a_lista(obj):
     if isinstance(obj, list):
@@ -184,21 +213,29 @@ def convertir_a_lista(obj):
 #                 #print(nombre_completo)
 
 def cargar_ML_plano(clave,otracarpeta):
-    global cantidad_videos,superior
+    global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
 
     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
+
     #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
         # Verifica si la carpeta existe
     if not os.path.exists(escritorio):
         print(f"La carpeta '{escritorio}' no existe.")
         return None
+
+    modoss=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre)
     
-    cantidad_videos=contar_elementos_carpeta(escritorio)
-    
-    superior=cantidad_videos
+    ele,car=contar_elementos_carpeta(modoss)
+    nombre_modos=car
+        
+
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
+        superior=len(archivos)
+        nombre_archivos=archivos
+        #print(raiz)
+
         for nombre_archivo in archivos:
             if clave in nombre_archivo:
                 # Imprime el nombre completo del archivo que contiene la palabra buscada
@@ -215,7 +252,7 @@ def contar_elementos_carpeta(ruta):
     elementos = os.listdir(ruta)
     # Contar el número total de elementos
     total_elementos = len(elementos)
-    return total_elementos
+    return total_elementos,elementos
 
 
 async def enviar_mensaje_a_clientes(mensaje, clientes):
@@ -227,29 +264,12 @@ async def enviar_mensaje_a_clientes(mensaje, clientes):
 async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
+    global nombre_archivos,nombre_modos
     clientes.add(websocket)
 
 
 
-    # Modo 
-    if f==0:
-         #modo Bidimensional
-        modo="Bidimensional"
-    if f==1:
-         #modo doppler color
-        modo="Modo Doppler Color"
-    if f==2:
-         #modo doppler pulsado
-        modo="Modo Doppler Pulsado"
-    if f==3:
-         #modo doppler continuo
-        modo="Modo Doppler Continuo"
-    if f==4:
-         #modo doppler tisular
-        modo="Modo Doppler Tisular"
-    if f==5:
-         #modo M
-        modo="Modo M"
+
 
 
     #cliente_id=str()
@@ -286,24 +306,38 @@ async def handle_client(websocket,path):
             if mensaje_frontend is not None:
                 if frontend is not None:                    
                     
-                    #comparar mensajes
-                    
-                        # ruta=mensaje_transductor["dirVideo"]    
-                        # mensaje_frontend["dirVideo"]=ruta
-                        # mensaje_frontend['status']=mensaje_transductor['status']
-                        # mensaje_frontend['Nombre_movimiento']=mensaje_transductor['Nombre_movimiento']
                     if 'patologia' in mensaje_frontend:
+                        
+                        # if mensaje_frontend['btn']==0 and mensaje_frontend['marcador']!="":
+                        #     patologico=mensaje_frontend['patologia']                   
+                        #     marcador=mensaje_frontend['marcador'] 
+                        #     dataa={"modos": nombre_modos,"videos":nombre_archivos,"cantidad":superior}
+                        #     msj=json.dumps(dataa)                         
+                               
+                        #     await frontend.send(msj)
+                        #     await asyncio.sleep(1)
 
+                        #else:
                         patologico=mensaje_frontend['patologia']                   
                         marcador=mensaje_frontend['marcador']              
-                        IDvideo=mensaje_frontend['IDvideo']
-                        f=mensaje_frontend['btn']
+                        
+
+                        if mensaje_frontend['btn']=="" and mensaje_frontend['IDvideo']==0:
+                            f=0
+                            IDvideo=1
+                        else:
+                            f=mensaje_frontend['btn']
+                            IDvideo=mensaje_frontend['IDvideo']
 
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
                             
 
-
+                        dataa={"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
+                        print(modo)
+                        msj=json.dumps(dataa)                         
+                        await frontend.send(msj)                            
+                        
                         mensaje=dato
                         m=json.dumps(mensaje)
                         await frontend.send(m)

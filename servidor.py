@@ -221,7 +221,7 @@ def cargar_ML_plano(clave,otracarpeta):
     #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
         # Verifica si la carpeta existe
     if not os.path.exists(escritorio):
-        print(f"La carpeta '{escritorio}' no existe.")
+        #print(f"La carpeta '{escritorio}' no existe.")
         return None
 
     modoss=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre)
@@ -243,7 +243,7 @@ def cargar_ML_plano(clave,otracarpeta):
                 return nombre_completo
                 #print(nombre_completo)
         # Si no se encuentra el archivo, devuelve None
-    print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
+    #print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
     return None
 
 
@@ -265,6 +265,7 @@ async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
     global nombre_archivos,nombre_modos
+
     clientes.add(websocket)
 
 
@@ -331,13 +332,21 @@ async def handle_client(websocket,path):
 
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
+
+                        # else:
+                        #     nombre=
                             
 
-                        dataa={"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
+                        dataa={"modos": modos,"videos":nombre_archivos,"cantidad":superior}
                         print(modo)
                         msj=json.dumps(dataa)                         
-                        await frontend.send(msj)                            
-                        
+                        await frontend.send(msj)  
+                                                  
+                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
+                        print(modo)
+                        msj=json.dumps(dataa)
+
+                        await frontend.send(msj)                           
                         mensaje=dato
                         m=json.dumps(mensaje)
                         await frontend.send(m)
@@ -351,8 +360,7 @@ async def handle_client(websocket,path):
 
 # Iniciar el servidor WebSocket
 
-
-keyboard.hook(on_key_press)
+#keyboard.hook(on_key_press)
 start_server=websockets.serve(handle_client, "localhost", 8765) 
 print("Servidor WebSocket iniciado en ws://localhost:8765")
 asyncio.get_event_loop().run_until_complete(start_server)
@@ -361,8 +369,3 @@ asyncio.get_event_loop().run_forever()
 
 
 
-
-
-
-
-    

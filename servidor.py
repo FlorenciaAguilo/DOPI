@@ -267,6 +267,26 @@ async def handle_client(websocket,path):
     global nombre_archivos,nombre_modos
 
     clientes.add(websocket)
+    # Vistas
+        # Modo 
+    if f==0:
+         #modo Bidimensional
+        modo="Bidimensional"
+    if f==1:
+         #modo doppler color
+        modo="Modo Doppler Color"
+    if f==2:
+         #modo doppler pulsado
+        modo="Modo Doppler Pulsado"
+    if f==3:
+         #modo doppler continuo
+        modo="Modo Doppler Continuo"
+    if f==4:
+         #modo doppler tisular
+        modo="Modo Doppler Tisular"
+    if f==5:
+         #modo M
+        modo="Modo M"
 
 
 

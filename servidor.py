@@ -7,6 +7,8 @@ import os
 
 clientes = set()
 client={}
+
+diccionaro_videos={}
 # Variable para almacenar el cliente frontend
 frontend = None
 transductor= None
@@ -217,7 +219,7 @@ def convertir_a_lista(obj):
 #                 #print(nombre_completo)
 
 def cargar_ML_plano(clave,otracarpeta):
-    global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre
+    global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre, diccionario_videos 
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
 
     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
@@ -233,7 +235,19 @@ def cargar_ML_plano(clave,otracarpeta):
     ele,car=contar_elementos_carpeta(modoss)
     nombre_modos=car
         
+# Iterar sobre los archivos en la carpeta
+    for archivo in os.listdir(escritorio):
+        if archivo.endswith(".mp4"):  # Solo agregar archivos de video con extensión .mp4
+           direccion_video = os.path.join(escritorio, archivo)
+           lista_videos.append((archivo, direccion_video))
+    for nombre, direccion in lista_videos:
+        diccionario_videos["videoTitulo"] = nombre
+        diccionario_videos["dirVideo"] = direccion 
+        
 
+
+# Imprimir la lista de videos
+#print(lista_videos)
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
         superior=len(archivos)
@@ -268,7 +282,7 @@ async def enviar_mensaje_a_clientes(mensaje, clientes):
 async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
-    global nombre_archivos,nombre_modos,tipo
+    global nombre_archivos,nombre_modos,tipo,diccionario_videos 
 
     clientes.add(websocket)
 
@@ -339,7 +353,8 @@ async def handle_client(websocket,path):
                         #     nombre=
                             
                                                   
-                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
+                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"videos":diccionario_videos}
+                        
                         print(modo)
                         msj=json.dumps(dataa)
 

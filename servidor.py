@@ -158,6 +158,8 @@ def on_key_press(e):
             nombre="Ap3C"
             #IDvideo=0
 
+    dato['patologia']=patologico
+
     if patologico==False:
         tipo="anatomia"
     else:
@@ -168,12 +170,14 @@ def on_key_press(e):
     dato['marcador']=marcador
     dato['Nombre_movimiento']=nombre
     
+
+    
     # data=dato
     
-    if dato['patologia'] == False:
-        tipo="anatomia"
-    else:
-        tipo="patologia"
+    # if dato['patologia'] == False:
+    #     tipo="anatomia"
+    # else:
+    #     tipo="patologia"
 
     carpeta=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo
     
@@ -264,7 +268,7 @@ async def enviar_mensaje_a_clientes(mensaje, clientes):
 async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
-    global nombre_archivos,nombre_modos
+    global nombre_archivos,nombre_modos,tipo
 
     clientes.add(websocket)
 
@@ -314,7 +318,9 @@ async def handle_client(websocket,path):
                         #     await asyncio.sleep(1)
 
                         #else:
-                        patologico=mensaje_frontend['patologia']                   
+                        patologico=mensaje_frontend['patologia']
+                        print(patologico)
+                                               
                         marcador=mensaje_frontend['marcador']              
                         
 

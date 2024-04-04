@@ -267,31 +267,6 @@ async def handle_client(websocket,path):
     global nombre_archivos,nombre_modos
 
     clientes.add(websocket)
-    # Vistas
-        # Modo 
-    if f==0:
-         #modo Bidimensional
-        modo="Bidimensional"
-    if f==1:
-         #modo doppler color
-        modo="Modo Doppler Color"
-    if f==2:
-         #modo doppler pulsado
-        modo="Modo Doppler Pulsado"
-    if f==3:
-         #modo doppler continuo
-        modo="Modo Doppler Continuo"
-    if f==4:
-         #modo doppler tisular
-        modo="Modo Doppler Tisular"
-    if f==5:
-         #modo M
-        modo="Modo M"
-
-
-
-
-
 
     #cliente_id=str()
     try:
@@ -349,6 +324,7 @@ async def handle_client(websocket,path):
                         else:
                             f=mensaje_frontend['btn']
                             IDvideo=mensaje_frontend['IDvideo']
+                        
 
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
@@ -356,11 +332,6 @@ async def handle_client(websocket,path):
                         # else:
                         #     nombre=
                             
-
-                        dataa={"modos": modos,"videos":nombre_archivos,"cantidad":superior}
-                        print(modo)
-                        msj=json.dumps(dataa)                         
-                        await frontend.send(msj)  
                                                   
                         dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
                         print(modo)
@@ -380,7 +351,7 @@ async def handle_client(websocket,path):
 
 # Iniciar el servidor WebSocket
 
-#keyboard.hook(on_key_press)
+keyboard.hook(on_key_press)
 start_server=websockets.serve(handle_client, "localhost", 8765) 
 print("Servidor WebSocket iniciado en ws://localhost:8765")
 asyncio.get_event_loop().run_until_complete(start_server)

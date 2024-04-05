@@ -34,6 +34,7 @@ cantidad_videos=0
 nombre_archivos=""
 nombre_modos=""
 
+lista_videos=[]
 
 
 ruta=""
@@ -43,6 +44,7 @@ llaves_a_incluir = ['dirVideo', 'status', 'Nombre_movimiento','marcador']
 def on_key_press(e):
     global f, data,dato, prediccion, nombre,marcador,modo,IDvideo,carpeta, ruta, contador,key_pressed, key_pressed1
     global cantidad_videos, inferior, superior, bandera,patologico,tipo,superior,nombre_archivos,nombre_modos
+    global diccionaro_videos,lista_videos
     contador=0    
 
 # mPrediccion de vista. Permite identificar si el movimiento es valido o no
@@ -180,8 +182,8 @@ def on_key_press(e):
     #     tipo="patologia"
 
     carpeta=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo
-    
     ruta=cargar_ML_plano(f"{IDvideo}"+f" {marcador}",carpeta)
+    
 
     dato['dirVideo']=ruta
     dato['IDvideo']=IDvideo
@@ -218,6 +220,7 @@ def convertir_a_lista(obj):
 
 def cargar_ML_plano(clave,otracarpeta):
     global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre
+    global lista_videos
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
 
     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
@@ -227,6 +230,35 @@ def cargar_ML_plano(clave,otracarpeta):
     if not os.path.exists(escritorio):
         #print(f"La carpeta '{escritorio}' no existe.")
         return None
+
+    lista=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre+"\\"+modo)
+    
+    
+    for raiz, carpetas, archivos in os.walk(lista):
+        
+        print(raiz)
+        video={}
+        for archivo in archivos:
+            # video["videoTitulo"] = archivo
+            # video["dirVideo"] = raiz+"\\"+archivo
+            lista_videos.append({"videoTitulo":archivo,"dirVideo":raiz+"\\"+archivo})
+        #break
+        print("holaaa")
+        
+# Iterar sobre los archivos en la carpeta
+    # for archivo in os.listdir(lista):
+    #     if archivo.endswith(".mp4"):  # Solo agregar archivos de video con extensión .mp4
+    #        direccion_video = os.path.join(lista, archivo)
+    #        lista_videos.append((archivo, direccion_video))
+    #        print(lista_videos)
+    
+    
+    
+    # for nombre, direccion in lista_videos:
+    #     diccionario_videos["videoTitulo"] = nombre
+    #     diccionario_videos["dirVideo"] = direccion 
+
+
 
     modoss=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre)
     
@@ -238,6 +270,10 @@ def cargar_ML_plano(clave,otracarpeta):
     for raiz, carpetas, archivos in os.walk(escritorio):
         superior=len(archivos)
         nombre_archivos=archivos
+
+
+
+
         #print(raiz)
 
         for nombre_archivo in archivos:
@@ -269,6 +305,7 @@ async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
     global nombre_archivos,nombre_modos,tipo
+    global lista_videos,ruta
 
     clientes.add(websocket)
 
@@ -276,6 +313,7 @@ async def handle_client(websocket,path):
     try:
         async for message in websocket:
             #message = json.loads(message)
+            
             
             data=json.loads(message)
   
@@ -339,7 +377,9 @@ async def handle_client(websocket,path):
                         #     nombre=
                             
                                                   
-                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":nombre_archivos,"cantidad":superior}
+                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":lista_videos,"cantidad":superior}
+                        print(dataa)
+                        #"videos":diccionario_videos
                         print(modo)
                         msj=json.dumps(dataa)
 

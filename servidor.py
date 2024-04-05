@@ -7,6 +7,8 @@ import os
 
 clientes = set()
 client={}
+
+diccionaro_videos={}
 # Variable para almacenar el cliente frontend
 frontend = None
 transductor= None
@@ -265,7 +267,19 @@ def cargar_ML_plano(clave,otracarpeta):
     ele,car=contar_elementos_carpeta(modoss)
     nombre_modos=car
         
+# Iterar sobre los archivos en la carpeta
+    for archivo in os.listdir(escritorio):
+        if archivo.endswith(".mp4"):  # Solo agregar archivos de video con extensión .mp4
+           direccion_video = os.path.join(escritorio, archivo)
+           lista_videos.append((archivo, direccion_video))
+    for nombre, direccion in lista_videos:
+        diccionario_videos["videoTitulo"] = nombre
+        diccionario_videos["dirVideo"] = direccion 
+        
 
+
+# Imprimir la lista de videos
+#print(lista_videos)
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
         superior=len(archivos)

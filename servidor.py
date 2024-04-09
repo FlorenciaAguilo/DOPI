@@ -235,17 +235,17 @@ def cargar_ML_plano(clave,otracarpeta):
 
     lista=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre+"\\"+modo)
     
-    
+    raiz=""
+    carpetas=""
+    archivos=""
+
     for raiz, carpetas, archivos in os.walk(lista):
-        
-        print(raiz)
-        video={}
         for archivo in archivos:
             # video["videoTitulo"] = archivo
             # video["dirVideo"] = raiz+"\\"+archivo
             lista_videos.append({"videoTitulo":archivo,"dirVideo":raiz+"\\"+archivo})
-        #break
-        print("holaaa")
+        break
+        
         
 # Iterar sobre los archivos en la carpeta
     # for archivo in os.listdir(lista):
@@ -285,11 +285,6 @@ def cargar_ML_plano(clave,otracarpeta):
         superior=len(archivos)
         nombre_archivos=archivos
 
-
-
-
-        #print(raiz)
-
         for nombre_archivo in archivos:
             if clave in nombre_archivo:
                 # Imprime el nombre completo del archivo que contiene la palabra buscada
@@ -300,7 +295,7 @@ def cargar_ML_plano(clave,otracarpeta):
     #print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
     return None
 
-
+f"{f}"
 def contar_elementos_carpeta(ruta):
     # Obtener la lista de archivos y carpetas en la ruta especificada
     elementos = os.listdir(ruta)
@@ -392,6 +387,7 @@ async def handle_client(websocket,path):
                             
                                                   
                         dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":lista_videos,"cantidad":superior}
+                        
                         print(dataa)
                         #"videos":diccionario_videos
                         print(modo)

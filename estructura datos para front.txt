@@ -1,0 +1,130 @@
+AL FRONT-END, Se le envia este JSON:
+
+data={"vista": marcador,"estructura": lista_videos}
+
+Donde --> "marcador" es la vista que seleccionó el usuario. La vista que quiere practicar
+      --> "lista_videos" = {'pestaña': dic}
+
+			|
+			|
+			|
+		        \/
+
+{'pestaña': dic} ---> dic = {'movimiento_1': dic1 , 'movimiento_2': dic2 , ... }
+						|
+						---> dic1= {'modo_1': lista1 , 'modo_2': lista2 , ... }
+									|
+									---> lista1= [
+									     
+									     		{'videoTitulo': valor1 ,'dirVideo':valor1} , 
+									     
+									     		{'videoTitulo': valor2 ,'dirVideo':valor2} ,
+										
+										 	... ]
+
+Referencias: 
+
+	'pestaña' --> nombre de la pestaña activa, es decir "anatomia" o "patologia". Por defecto, es "anatomia"
+
+	'movimiento_1' --> movimientos según Marcador (vista activa). Por ejemplo en el Marcador = PEL, existen 3 movimeintos: "PEL clasico","PEL modificado nro 1_TEVD","PEL modificado nro 2_TSVD"
+
+	'modo_1' --> Modo que existe segun movimiento. Por ejemplo, en el movimiento PEL clasico existe el modo bidimensional. Modo Doppler Color, Modo M
+
+	'lista1' --> Lista de videos que hay en ese modo (es un array, un array de diccionadorios). Esta diferenciado por 'videoTitulo' (titulo del video), 'dirVideo' (ruta de video).
+
+
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+
+EJEMPLO: marcador PEL
+
+{
+    "vista": "PEL",
+    "estructura": {
+        "anatomia": {
+            "PEL clasico": {
+                "Bidimensional": [
+                    {
+                        "videoTitulo": "1 PEL Mostrando Todas Las Estructuras Detalladas En El Instructivo.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\1 PEL Mostrando Todas Las Estructuras Detalladas En El Instructivo.mp4"
+                    },
+                    {
+                        "videoTitulo": "2 PEL Mostrando La Banda Moderadora.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\2 PEL Mostrando La Banda Moderadora.mp4"
+                    },
+                    {
+                        "videoTitulo": "3 PEL, SIV en su poci\u00f3n basal con forma de \u201cS It\u00e1lica\u201d.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\3 PEL, SIV en su poci\u00f3n basal con forma de \u201cS It\u00e1lica\u201d.mp4"
+                    },
+                    {
+                        "videoTitulo": "4 PEL Enfocado En VM.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\4 PEL Enfocado En VM.mp4"
+                    },
+                    {
+                        "videoTitulo": "5 PEL Normal Con VI Verticalizado Inadecuada Imagen Para Realizar Mediciones.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\5 PEL Normal Con VI Verticalizado Inadecuada Imagen Para Realizar Mediciones.mp4"
+                    },
+                    {
+                        "videoTitulo": "6 PEL Transductor Bien Posicionado El SIV Casi No Forma \u00c1ngulo Con La Pared Anterior De La Aorta.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\6 PEL Transductor Bien Posicionado El SIV Casi No Forma \u00c1ngulo Con La Pared Anterior De La Aorta.mp4"
+                    },
+                    {
+                        "videoTitulo": "7 PEL Imagen En Espejo De La VM.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\7 PEL Imagen En Espejo De La VM.mp4"
+                    },
+                    {
+                        "videoTitulo": "8 PEL VM Metalica.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Bidimensional\\8 PEL VM Metalica.mp4"
+                    }
+                ],
+                "Modo Doppler Color": [
+                    {
+                        "videoTitulo": "1 PEL DC Mal Posicionado El Transductor VI Verticalizado.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Modo Doppler Color\\1 PEL DC Mal Posicionado El Transductor VI Verticalizado.mp4"
+                    }
+                ],
+                "Modo M": [
+                    {
+                        "videoTitulo": "1 PEL VM En Modo M Onda E Y A En Diastole.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Modo M\\1 PEL VM En Modo M Onda E Y A En Diastole.mp4"
+                    },
+                    {
+                        "videoTitulo": "2 PEL con modo M a nivel de los m\u00fasculos papilares.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Modo M\\2 PEL con modo M a nivel de los m\u00fasculos papilares.mp4"
+                    },
+                    {
+                        "videoTitulo": "3 PEL Modo M Senos De Valsalva.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL clasico\\Modo M\\3 PEL Modo M Senos De Valsalva.mp4"
+                    }
+                ]
+            },
+            "PEL modificado nro 1_TEVD": {
+                "Bidimensional": [
+                    {
+                        "videoTitulo": "1 PEL Modificado TEVD (2)-17.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL modificado nro 1_TEVD\\Bidimensional\\1 PEL Modificado TEVD (2)-17.mp4"
+                    }
+                ],
+                "Modo Doppler Color": [
+                    {
+                        "videoTitulo": "1 PEL Modificado Flujo Transtricuspideo Con DC-2.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL modificado nro 1_TEVD\\Modo Doppler Color\\1 PEL Modificado Flujo Transtricuspideo Con DC-2.mp4"
+                    }
+                ]
+            },
+            "PEL modificado nro 2_TSVD": {
+                "Modo Doppler Color": [
+                    {
+                        "videoTitulo": "1 PEL Modificado TSVD Con DC-3.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL modificado nro 2_TSVD\\Modo Doppler Color\\1 PEL Modificado TSVD Con DC-3.mp4"
+                    },
+                    {
+                        "videoTitulo": "2 PEL Modificado Enfocado En El TSVD-4.mp4",
+                        "dirVideo": "C:\\Users\\AGUIL\u00d3\\Desktop\\simulador_edopi_backend\\PEL\\anatomia\\PEL modificado nro 2_TSVD\\Modo Doppler Color\\2 PEL Modificado Enfocado En El TSVD-4.mp4"
+                    }
+                ]
+            }
+        }
+    }
+}
+

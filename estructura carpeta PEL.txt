@@ -1,0 +1,27 @@
+PEL:
+	|anatomico:
+		|PEL clasico:
+				|Bidimensional
+				|Modo Doppler Color
+				|Modo M
+
+		|PEL PEL modificado nro 1_TEVD:
+						|Bidimensional
+						|Modo Doppler Color
+
+		|PEL PEL modificado nro 2_TSVD:
+						|Modo Doppler Color
+	
+
+	|patologico:
+
+		|PEL clasico:
+				|Bidimensional
+				|Modo Doppler Color
+
+		|PEL PEL modificado nro 1_TEVD:
+						|Bidimensional
+						|Modo Doppler Color
+
+		|PEL PEL modificado nro 2_TSVD:
+						|Modo Doppler Color

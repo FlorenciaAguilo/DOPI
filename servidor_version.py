@@ -5,8 +5,8 @@ import keyboard
 import json
 import os
 
-clientes = set()
 client={}
+
 # Variable para almacenar el cliente frontend
 frontend = None
 transductor= None
@@ -23,11 +23,10 @@ marcador=""
 patologico=False
 tipo=""
 
-IDvideo=1 # sirve para acceder a cada video en una carpeta dada
-carpeta="" # sirve para acceder a la carpeta de videos de una vista en especifico
-modo=""    #modo de la imagen 
+IDvideo=0  # sirve para acceder a cada video en una carpeta dada
+carpeta="" # sirve para acceder a la carpeta de videos de una vista, un modo y un movmiento especifico 
+modo=""    # modo de la imagen 
 
-contador=0
 superior=0
 
 cantidad_videos=0
@@ -36,10 +35,31 @@ nombre_modos=""
 
 lista_videos=[]
 
-
 ruta=""
 dato ={'dirVideo': ruta,'patologia': patologico,'status': prediccion,'Nombre_movimiento': nombre,'marcador': marcador,'IDvideo':IDvideo,'btn': f}
-llaves_a_incluir = ['dirVideo', 'status', 'Nombre_movimiento','marcador']
+
+# Define una bandera para verificar si el mensaje ya se envió
+enviar_dataa=True
+patologico_anterior = None  # Variable para almacenar el valor anterior de patologico
+
+def codigo_modo(codigo):
+    if codigo==0:
+        modo="Bidimensional"
+
+    if codigo==1:
+        modo="Modo Doppler Color"
+
+    if codigo==2:
+        modo="Modo Doppler Pulsado"
+
+    if codigo==3:
+        modo="Modo Doppler Continuo"
+
+    if codigo==4:
+        modo="Modo Doppler Tisular"
+
+    if codigo==5:
+        modo="Modo M"
 
 def on_key_press(e):
     global f, data,dato, prediccion, nombre,marcador,modo,IDvideo,carpeta, ruta, contador,key_pressed, key_pressed1
@@ -52,48 +72,7 @@ def on_key_press(e):
         prediccion=False
     if e.name=="g":
         prediccion=True
-
-# Vistas
-        # Modo 
-    if f==0:
-         #modo Bidimensional
-        modo="Bidimensional"
-    if f==1:
-         #modo doppler color
-        modo="Modo Doppler Color"
-    if f==2:
-         #modo doppler pulsado
-        modo="Modo Doppler Pulsado"
-    if f==3:
-         #modo doppler continuo
-        modo="Modo Doppler Continuo"
-    if f==4:
-         #modo doppler tisular
-        modo="Modo Doppler Tisular"
-    if f==5:
-         #modo M
-        modo="Modo M"
-    # if e.name=="1":
-    #     marcador="PEL"
-    #     nombre=""
-        
-    # if e.name=="2":
-    #     marcador="PEC"
-    #     nombre=""
-        
-    # if e.name=="3":
-    #     marcador="APICAL"
-    #     nombre=""
-        
-    # if e.name=="4":
-    #     marcador="SUBCOSTAL"
-    #     nombre=""
-        
-    # if e.name=="5":
-    #     marcador="SET"
-    #     nombre="SET"
-        
-
+ 
 # Permite simular los distintos movimientos de las distintas vistas 
 
     if e.name == "6":
@@ -198,84 +177,61 @@ def convertir_a_lista(obj):
         return {'__es_lista__': True, 'datos': obj}
     return obj
 
-#holaaaaaaaaaaa
+def listar_videos():
+    global modo,marcador,tipo,nombre,modo,lista_videos
+    directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
+    lista_carpetas = {}
 
-# def cargar_ML_plano(clave,otracarpeta):
-#     global cantidad_videos,superior
-#     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
+    # Ruta base donde se encuentran las carpetas PEL
+    ruta_base_pel = os.path.join(directorio_base, "Desktop", "simulador_edopi_backend", marcador)
 
-#     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
-#     #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
-#     cantidad_videos=contar_elementos_carpeta(escritorio)
-
-#     superior=cantidad_videos
-#     # Recorre los archivos en el directorio
-#     for raiz, carpetas, archivos in os.walk(escritorio):
-#         for nombre_archivo in archivos:
-#             if clave in nombre_archivo:
-#                 # Imprime el nombre completo del archivo que contiene la palabra buscada
-#                 nombre_completo = os.path.join(raiz, nombre_archivo)
-#                 return nombre_completo
-#                 #print(nombre_completo)
-
+    # Recorremos las carpetas principales (anatomico, patologico) dentro de PEL
+    for categoria in os.listdir(ruta_base_pel):
+        ruta_categoria = os.path.join(ruta_base_pel, categoria)
+        if os.path.isdir(ruta_categoria) and categoria == tipo:  # Solo para por el 'tipo' que e sla pestaña activa. Por defecto es anatomia
+            lista_carpetas[categoria] = {}
+            # Recorremos las subcarpetas de cada categoría (PEL clasico, PEL modificado nro 1_TEVD, etc.)
+            for subcategoria in os.listdir(ruta_categoria):
+                ruta_subcategoria = os.path.join(ruta_categoria, subcategoria)
+                if os.path.isdir(ruta_subcategoria):
+                    # Recorremos las subcarpetas de la subcategoría actual (Bidimensional, Modo Doppler Color, etc.)
+                    lista_videos = {}
+                    for subcarpeta in os.listdir(ruta_subcategoria):
+                        ruta_subcarpeta = os.path.join(ruta_subcategoria, subcarpeta)
+                        if os.path.isdir(ruta_subcarpeta):
+                            # Ahora obtenemos los videos dentro de la subcarpeta actual y los agregamos a la lista de videos
+                            videos = []
+                            for video in os.listdir(ruta_subcarpeta):
+                                if os.path.isfile(os.path.join(ruta_subcarpeta, video)):
+                                    videos.append({
+                                        "videoTitulo": video,
+                                        "dirVideo": os.path.join(ruta_subcarpeta, video)
+                                    })
+                            lista_videos[subcarpeta] = videos
+                    lista_carpetas[categoria][subcategoria] = lista_videos
+    
+    # Imprimimos la estructura de carpetas y videos
+    #print(lista_carpetas)
+    return lista_carpetas
+    
 def cargar_ML_plano(clave,otracarpeta):
     global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre
     global lista_videos
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
-
     escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
-
-    #"Desktop\BLE_imu_TaitBryan\Machine Learning + GIU"
-        # Verifica si la carpeta existe
+    
+    # Verifica si la carpeta existe
     if not os.path.exists(escritorio):
-        #print(f"La carpeta '{escritorio}' no existe.")
         return None
 
-    lista=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre+"\\"+modo)
-    
-    
-    for raiz, carpetas, archivos in os.walk(lista):
-        
-        print(raiz)
-        video={}
-        for archivo in archivos:
-            # video["videoTitulo"] = archivo
-            # video["dirVideo"] = raiz+"\\"+archivo
-            lista_videos.append({"videoTitulo":archivo,"dirVideo":raiz+"\\"+archivo})
-        #break
-        print("holaaa")
-        
-# Iterar sobre los archivos en la carpeta
-    # for archivo in os.listdir(lista):
-    #     if archivo.endswith(".mp4"):  # Solo agregar archivos de video con extensión .mp4
-    #        direccion_video = os.path.join(lista, archivo)
-    #        lista_videos.append((archivo, direccion_video))
-    #        print(lista_videos)
-    
-    
-    
-    # for nombre, direccion in lista_videos:
-    #     diccionario_videos["videoTitulo"] = nombre
-    #     diccionario_videos["dirVideo"] = direccion 
-
-
-
     modoss=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre)
-    
     ele,car=contar_elementos_carpeta(modoss)
     nombre_modos=car
         
-
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
         superior=len(archivos)
         nombre_archivos=archivos
-
-
-
-
-        #print(raiz)
-
         for nombre_archivo in archivos:
             if clave in nombre_archivo:
                 # Imprime el nombre completo del archivo que contiene la palabra buscada
@@ -305,19 +261,13 @@ async def handle_client(websocket,path):
     global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
     global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
     global nombre_archivos,nombre_modos,tipo
-    global lista_videos,ruta
+    global lista_videos, enviar_dataa, patologico_anterior
 
-    clientes.add(websocket)
-
-    #cliente_id=str()
     try:
-        async for message in websocket:
-            #message = json.loads(message)
-            
+        async for message in websocket:            
             
             data=json.loads(message)
-  
-            
+
             #identifica al frontend
             if "frontClient" in message:
                 print("existe la llave")
@@ -328,15 +278,34 @@ async def handle_client(websocket,path):
                     id_cliente = id(websocket)
                     client[id_cliente] = websocket
                     frontend = client[id_cliente]
+                    
+                    
+            # Espera hasta recibir la información del marcador
 
-                # else:
-                #     if frontend!=websocket:
-                #         print("Frontend aun no conectado")
-                #         id_transductor=id(websocket)
-                #         client[id_transductor]=websocket
-                #         transductor= client[id_transductor]
-                #         mensaje_transductor=data
-                           
+            if 'marcador' in data:
+                marcador = data['marcador']
+                patologico= data['patologia']
+                # Si es la primera vez que se recibe el marcador o el valor de patologico ha cambiado
+                
+                if enviar_dataa or patologico != patologico_anterior:
+                    if patologico == False:
+                        tipo = "anatomia"
+                    else:
+                        tipo = "patologia"
+
+                    lista_videos = listar_videos()
+                    dataa = {"vista": marcador, "estructura": lista_videos}
+                    msj = json.dumps(dataa)
+                    await frontend.send(msj)
+
+                    # Actualizamos la bandera y el valor de patologico anterior
+                    enviar_dataa = False
+                    patologico_anterior = patologico
+                
+
+            
+            
+            
             if frontend is not None:
                 if websocket == frontend:
                     mensaje_frontend=data                
@@ -345,22 +314,14 @@ async def handle_client(websocket,path):
                 if frontend is not None:                    
                     
                     if 'patologia' in mensaje_frontend:
-                        
-                        # if mensaje_frontend['btn']==0 and mensaje_frontend['marcador']!="":
-                        #     patologico=mensaje_frontend['patologia']                   
-                        #     marcador=mensaje_frontend['marcador'] 
-                        #     dataa={"modos": nombre_modos,"videos":nombre_archivos,"cantidad":superior}
-                        #     msj=json.dumps(dataa)                         
-                               
-                        #     await frontend.send(msj)
-                        #     await asyncio.sleep(1)
 
-                        #else:
                         patologico=mensaje_frontend['patologia']
-                        print(patologico)
-                                               
-                        marcador=mensaje_frontend['marcador']              
-                        
+                        if patologico==False:
+                            tipo="anatomia"
+                        else:
+                            tipo="patologia"
+
+                        marcador=mensaje_frontend['marcador']
 
                         if mensaje_frontend['btn']=="" and mensaje_frontend['IDvideo']==0:
                             f=0
@@ -368,22 +329,12 @@ async def handle_client(websocket,path):
                         else:
                             f=mensaje_frontend['btn']
                             IDvideo=mensaje_frontend['IDvideo']
+                        codigo_modo(f)
                         
-
+                        lista_videos=listar_videos()
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
 
-                        # else:
-                        #     nombre=
-                            
-                                                  
-                        dataa={"movimeinto":nombre,"modos": nombre_modos,"modo_activo":modo,"videos":lista_videos,"cantidad":superior}
-                        print(dataa)
-                        #"videos":diccionario_videos
-                        print(modo)
-                        msj=json.dumps(dataa)
-
-                        await frontend.send(msj)                           
                         mensaje=dato
                         m=json.dumps(mensaje)
                         await frontend.send(m)
@@ -391,7 +342,6 @@ async def handle_client(websocket,path):
                         await asyncio.sleep(1)
     finally:
         # Remover cliente de la lista de clientes conectados cuando se desconecta
-        #clientes.remove(websocket)
         frontend=None
 
 

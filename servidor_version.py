@@ -4,6 +4,7 @@ import websockets
 import keyboard
 import json
 import os
+from evento_tecla import on_key_press
 
 client={}
 
@@ -19,24 +20,26 @@ data=""
 prediccion=""
 nombre=""
 marcador=""
-
 patologico=False
 tipo=""
-
+ruta=""
 IDvideo=0  # sirve para acceder a cada video en una carpeta dada
 carpeta="" # sirve para acceder a la carpeta de videos de una vista, un modo y un movmiento especifico 
 modo=""    # modo de la imagen 
 
-superior=0
-
-cantidad_videos=0
-nombre_archivos=""
-nombre_modos=""
 
 lista_videos=[]
 
-ruta=""
+
 dato ={'dirVideo': ruta,'patologia': patologico,'status': prediccion,'Nombre_movimiento': nombre,'marcador': marcador,'IDvideo':IDvideo,'btn': f}
+
+
+# Función de conversión para manejar listas
+def convertir_a_lista(obj):
+    if isinstance(obj, list):
+        return {'__es_lista__': True, 'datos': obj}
+    return obj
+
 
 # Define una bandera para verificar si el mensaje ya se envió
 enviar_dataa=True
@@ -60,122 +63,6 @@ def codigo_modo(codigo):
 
     if codigo==5:
         modo="Modo M"
-
-def on_key_press(e):
-    global f, data,dato, prediccion, nombre,marcador,modo,IDvideo,carpeta, ruta, contador,key_pressed, key_pressed1
-    global cantidad_videos, inferior, superior, bandera,patologico,tipo,superior,nombre_archivos,nombre_modos
-    global diccionaro_videos,lista_videos
-    contador=0    
-
-# mPrediccion de vista. Permite identificar si el movimiento es valido o no
-    if e.name=="f":
-        prediccion=False
-    if e.name=="g":
-        prediccion=True
- 
-# Permite simular los distintos movimientos de las distintas vistas 
-
-    if e.name == "6":
-        if marcador=="PEL":
-            nombre="PEL clasico"
-            #IDvideo=0
-
-        if marcador=="PEC":
-            nombre="PEC A nivel de los grandes vasos"
-            #IDvideo=0
-
-        if marcador=="APICAL":
-            nombre="Ap4C"
-            #IDvideo=0
-
-        if marcador=="SUBCOSTAL":
-            nombre="SUBCOSTAL Ap4C" 
-            #IDvideo=0
-
-        if marcador=="SET":
-            nombre="SET eje largo"             
-            #IDvideo=0
-
-    if e.name == "7":
-        if marcador=="PEL":
-            nombre="PEL modificado nro 1_TEVD"
-            #IDvideo=0
-
-        if marcador=="PEC":
-            nombre="PEC A nivel de la valvula mitral"
-            #IDvideo=0
-
-        if marcador=="APICAL":
-            nombre="Ap5C"
-            #IDvideo=0
-
-        if marcador=="SUBCOSTAL":
-            nombre="SUBCOSTAL vena cava inferior"
-            #IDvideo=0
-
-        if marcador=="SET":
-            nombre="SET eje corto"  
-            #IDvideo=0      
-
-    if e.name == "8":
-        if marcador=="PEL":
-            nombre="PEL modificado nro 2_TSVD"
-            #IDvideo=0
-
-        if marcador=="PEC":
-            nombre="PEC A nivel de los musculos papilares"
-            #IDvideo=0
-
-        if marcador=="APICAL":
-            nombre="Ap2C"
-            #IDvideo=0
-
-    if e.name == "9":
-        if marcador=="PEC":
-            nombre="PEC A nivel de la punto del VI"
-            #IDvideo=0
-
-        if marcador=="APICAL":
-            nombre="Ap3C"
-            #IDvideo=0
-
-    dato['patologia']=patologico
-
-    if patologico==False:
-        tipo="anatomia"
-    else:
-        tipo="patologia"
-
-    dato['btn']=f
-    dato['status']=prediccion
-    dato['marcador']=marcador
-    dato['Nombre_movimiento']=nombre
-    
-
-    
-    # data=dato
-    
-    # if dato['patologia'] == False:
-    #     tipo="anatomia"
-    # else:
-    #     tipo="patologia"
-
-    carpeta=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo
-    ruta=cargar_ML_plano(f"{IDvideo}"+f" {marcador}",carpeta)
-    
-
-    dato['dirVideo']=ruta
-    dato['IDvideo']=IDvideo
-    
-    # if superior!=0 and nombre_archivos!="":
-    #     print("Número total de elementos:", superior)
-    #     print("Nombres de elementos:", nombre_archivos)
-    
-# Función de conversión para manejar listas
-def convertir_a_lista(obj):
-    if isinstance(obj, list):
-        return {'__es_lista__': True, 'datos': obj}
-    return obj
 
 def listar_videos():
     global modo,marcador,tipo,nombre,modo,lista_videos
@@ -214,60 +101,25 @@ def listar_videos():
     #print(lista_carpetas)
     return lista_carpetas
     
-def cargar_ML_plano(clave,otracarpeta):
-    global cantidad_videos,superior,nombre_archivos,nombre_modos, marcador,tipo,nombre
-    global lista_videos
-    directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
-    escritorio = os.path.join(directorio_base, "Desktop\\simulador_edopi_backend"+"\\"+otracarpeta)
-    
-    # Verifica si la carpeta existe
-    if not os.path.exists(escritorio):
-        return None
-
-    modoss=os.path.join(directorio_base,"Desktop\\simulador_edopi_backend"+"\\"+marcador+"\\"+tipo+"\\"+nombre)
-    ele,car=contar_elementos_carpeta(modoss)
-    nombre_modos=car
-        
-    # Recorre los archivos en el directorio
-    for raiz, carpetas, archivos in os.walk(escritorio):
-        superior=len(archivos)
-        nombre_archivos=archivos
-        for nombre_archivo in archivos:
-            if clave in nombre_archivo:
-                # Imprime el nombre completo del archivo que contiene la palabra buscada
-                nombre_completo = os.path.join(raiz, nombre_archivo)
-                return nombre_completo
-                #print(nombre_completo)
-        # Si no se encuentra el archivo, devuelve None
-    #print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
-    return None
-
-
-def contar_elementos_carpeta(ruta):
-    # Obtener la lista de archivos y carpetas en la ruta especificada
-    elementos = os.listdir(ruta)
-    # Contar el número total de elementos
-    total_elementos = len(elementos)
-    return total_elementos,elementos
-
-
-async def enviar_mensaje_a_clientes(mensaje, clientes):
-    # Iterar sobre los clientes conectados y enviar el mensaje a cada uno
-    for cliente in clientes:
-        await cliente.send(mensaje)
+def custom_on_key_press(e):
+    global f, data, dato, ruta, modo, carpeta, IDvideo, marcador, patologico, nombre, tipo, prediccion
+    prediccion, marcador, nombre, dato, patologico, f, tipo, carpeta, modo, IDvideo, ruta = on_key_press(
+        e, prediccion, marcador, nombre, dato, patologico, f, tipo, carpeta, modo, IDvideo, ruta
+    )
 
 
 async def handle_client(websocket,path):
-    global frontend,transductor, mensaje_frontend, mensaje_transductor,llaves_a_incluir,modo
-    global f,data,dato, ruta,carpeta,IDvideo, superior, bandera,new,IDvideo,f,marcador,patologico,nombre
-    global nombre_archivos,nombre_modos,tipo
+    global frontend, mensaje_frontend
+    global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
     global lista_videos, enviar_dataa, patologico_anterior
+        # Define una función que pasa las variables globales a on_key_press
 
     try:
         async for message in websocket:            
             
             data=json.loads(message)
-
+            print(nombre)
+            print(prediccion)
             #identifica al frontend
             if "frontClient" in message:
                 print("existe la llave")
@@ -302,10 +154,6 @@ async def handle_client(websocket,path):
                     enviar_dataa = False
                     patologico_anterior = patologico
                 
-
-            
-            
-            
             if frontend is not None:
                 if websocket == frontend:
                     mensaje_frontend=data                
@@ -329,6 +177,8 @@ async def handle_client(websocket,path):
                         else:
                             f=mensaje_frontend['btn']
                             IDvideo=mensaje_frontend['IDvideo']
+                        
+                        
                         codigo_modo(f)
                         
                         lista_videos=listar_videos()
@@ -344,10 +194,9 @@ async def handle_client(websocket,path):
         # Remover cliente de la lista de clientes conectados cuando se desconecta
         frontend=None
 
-
 # Iniciar el servidor WebSocket
 
-keyboard.hook(on_key_press)
+keyboard.hook(custom_on_key_press)
 start_server=websockets.serve(handle_client, "localhost", 8765) 
 print("Servidor WebSocket iniciado en ws://localhost:8765")
 asyncio.get_event_loop().run_until_complete(start_server)

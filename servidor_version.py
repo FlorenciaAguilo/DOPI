@@ -28,7 +28,7 @@ carpeta="" # sirve para acceder a la carpeta de videos de una vista, un modo y u
 modo=""    # modo de la imagen 
 
 
-lista_videos=[]
+lista_videos={}
 
 
 dato ={'dirVideo': ruta,'patologia': patologico,'status': prediccion,'Nombre_movimiento': nombre,'marcador': marcador,'IDvideo':IDvideo,'btn': f}
@@ -90,9 +90,12 @@ def listar_videos():
                             videos = []
                             for video in os.listdir(ruta_subcarpeta):
                                 if os.path.isfile(os.path.join(ruta_subcarpeta, video)):
+                                    # Construir la URL del video en lugar de la ruta local
+                                    video_url = f"http://localhost:3000/{subcarpeta}/{video}"
+                                    
                                     videos.append({
                                         "videoTitulo": video,
-                                        "dirVideo": os.path.join(ruta_subcarpeta, video)
+                                        "dirVideo": video_url#os.path.join(ruta_subcarpeta, video)
                                     })
                             lista_videos[subcarpeta] = videos
                     lista_carpetas[categoria][subcategoria] = lista_videos

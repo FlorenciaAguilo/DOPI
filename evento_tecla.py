@@ -96,7 +96,8 @@ def on_key_press(e,prediccion,marcador,nombre,dato,patologico,f,tipo,carpeta,mod
         ruta=cargar_ML_plano(f"{IDvideo}"+f" {marcador}",carpeta)
         
 
-        dato['dirVideo']=ruta
+        #dato['dirVideo']=ruta
+        dato['dirVideo']=f"http://localhost:3000/{carpeta}/{ruta}" if ruta else None
         dato['IDvideo']=IDvideo
 
         return prediccion,marcador,nombre,dato,patologico,f,tipo,carpeta,modo,IDvideo,ruta
@@ -111,15 +112,24 @@ def cargar_ML_plano(clave,otracarpeta):
     if not os.path.exists(escritorio):
         return None
         
+    # # Recorre los archivos en el directorio
+    # for raiz, carpetas, archivos in os.walk(escritorio):
+    #     for nombre_archivo in archivos:
+    #         if clave in nombre_archivo:
+    #             # Imprime el nombre completo del archivo que contiene la palabra buscada
+    #             nombre_completo = os.path.join(raiz, nombre_archivo)
+    #             return nombre_completo
+    #             #print(nombre_completo)
+    #     # Si no se encuentra el archivo, devuelve None
+    # #print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
+    # return None
+
     # Recorre los archivos en el directorio
     for raiz, carpetas, archivos in os.walk(escritorio):
         for nombre_archivo in archivos:
             if clave in nombre_archivo:
-                # Imprime el nombre completo del archivo que contiene la palabra buscada
-                nombre_completo = os.path.join(raiz, nombre_archivo)
-                return nombre_completo
-                #print(nombre_completo)
-        # Si no se encuentra el archivo, devuelve None
-    #print(f"No se encontró ningún archivo con la clave '{clave}' en la carpeta '{escritorio}'.")
+                # Solo devuelve el nombre del archivo, sin la ruta completa
+                return nombre_archivo
+    
+    # Si no se encuentra el archivo, devuelve None
     return None
-

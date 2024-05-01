@@ -5,6 +5,7 @@ import keyboard
 import json
 import os
 from evento_tecla import on_key_press
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 client={}
 
@@ -46,6 +47,7 @@ enviar_dataa=True
 patologico_anterior = None  # Variable para almacenar el valor anterior de patologico
 
 def codigo_modo(codigo):
+    global modo
     if codigo==0:
         modo="Bidimensional"
 
@@ -121,8 +123,6 @@ async def handle_client(websocket,path):
         async for message in websocket:            
             
             data=json.loads(message)
-            print(nombre)
-            print(prediccion)
             #identifica al frontend
             if "frontClient" in message:
                 print("existe la llave")
@@ -183,7 +183,7 @@ async def handle_client(websocket,path):
                         
                         
                         codigo_modo(f)
-                        
+
                         lista_videos=listar_videos()
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
@@ -200,10 +200,25 @@ async def handle_client(websocket,path):
 # Iniciar el servidor WebSocket
 
 keyboard.hook(custom_on_key_press)
-start_server=websockets.serve(handle_client, "localhost", 8765) 
+start_server = websockets.serve(handle_client, "localhost", 8765) 
 print("Servidor WebSocket iniciado en ws://localhost:8765")
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+
+# Configurar el servidor HTTP para servir archivos multimedia
+class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory="/ruta/a/tu/directorio/de/media", **kwargs)
+
+http_server_port = 3000
+http_server = HTTPServer(('localhost', http_server_port), MediaHTTPRequestHandler)
+print(f"Servidor HTTP iniciado en http://localhost:{http_server_port}")
+
+# Ejecutar ambos servidores
+try:
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+except KeyboardInterrupt:
+    http_server.shutdown()
+    http_server.server_close()
 
 
 

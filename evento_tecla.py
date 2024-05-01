@@ -86,18 +86,31 @@ def on_key_press(e,prediccion,marcador,nombre,dato,patologico,f,tipo,carpeta,mod
             tipo="anatomia"
         else:
             tipo="patologia"
-
+        
         dato['btn']=f
         dato['status']=prediccion
         dato['marcador']=marcador
         dato['Nombre_movimiento']=nombre
 
-        carpeta=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo
-        ruta=cargar_ML_plano(f"{IDvideo}"+f" {marcador}",carpeta)
+        # carpeta=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo
+        # ruta=cargar_ML_plano(f"{IDvideo}"+f" {marcador}",carpeta)
         
-
-        #dato['dirVideo']=ruta
-        dato['dirVideo']=f"http://localhost:3000/{carpeta}/{ruta}" if ruta else None
+        if nombre is not None:
+            # Construir la carpeta utilizando los valores de marcador, tipo y nombre
+            carpeta = os.path.join(marcador, tipo, nombre, modo)
+            # Obtener el nombre del archivo de la carpeta utilizando cargar_ML_plano
+            nombre_archivo = cargar_ML_plano(f"{IDvideo} {marcador}", carpeta)
+            
+            if nombre_archivo is not None:
+                # Construir la URL completa del video
+                dato['dirVideo'] = f"http://localhost:3000/{marcador}/{tipo}/{nombre}/{modo}/{nombre_archivo}"
+            else:
+                dato['dirVideo'] = None
+        # #dato['dirVideo']=ruta
+        # ruta2=marcador+"\\"+tipo+"\\"+nombre+"\\"+modo+"\\"+ f"{IDvideo}"+f" {marcador}"
+        # dato['dirVideo']=f"http://localhost:3000/{ruta2}" if ruta2 else None
+        
+        
         dato['IDvideo']=IDvideo
 
         return prediccion,marcador,nombre,dato,patologico,f,tipo,carpeta,modo,IDvideo,ruta

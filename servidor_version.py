@@ -6,13 +6,13 @@ import json
 import os
 from evento_tecla import on_key_press
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-
+from urllib.parse import unquote
 client={}
 
 # Variable para almacenar el cliente frontend
 frontend = None
 transductor= None
-
+directory_path=None
 mensaje_frontend=None
 mensaje_transductor=None
 
@@ -27,7 +27,7 @@ ruta=""
 IDvideo=0  # sirve para acceder a cada video en una carpeta dada
 carpeta="" # sirve para acceder a la carpeta de videos de una vista, un modo y un movmiento especifico 
 modo=""    # modo de la imagen 
-
+relative_directory=None
 
 lista_videos={}
 
@@ -41,10 +41,25 @@ def convertir_a_lista(obj):
         return {'__es_lista__': True, 'datos': obj}
     return obj
 
-
+# Definir la función que se llamará después de handle_client
+def continuar_despues_de_actualizar():
+    global relative_directory
+    global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
+    relative_directory = os.path.join(marcador, tipo, nombre, modo)
+    print(relative_directory)
+    
 # Define una bandera para verificar si el mensaje ya se envió
 enviar_dataa=True
 patologico_anterior = None  # Variable para almacenar el valor anterior de patologico
+
+def find_folder(folder_name, search_path=None):
+    if search_path is None:
+        search_path = os.path.join(os.path.expanduser("~"), "Desktop")  # Ruta al escritorio del usuario
+
+    for root, dirs, files in os.walk(search_path):
+        if folder_name in dirs:
+            return os.path.abspath(os.path.join(root, folder_name))
+    return None
 
 def codigo_modo(codigo):
     global modo
@@ -67,17 +82,20 @@ def codigo_modo(codigo):
         modo="Modo M"
 
 def listar_videos():
-    global modo,marcador,tipo,nombre,modo,lista_videos
+    global modo, marcador, tipo, nombre, modo, lista_videos
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
     lista_carpetas = {}
 
     # Ruta base donde se encuentran las carpetas PEL
     ruta_base_pel = os.path.join(directorio_base, "Desktop", "simulador_edopi_backend", marcador)
 
+    # Contador para asignar un número único a cada video
+    video_count = 1
+
     # Recorremos las carpetas principales (anatomico, patologico) dentro de PEL
     for categoria in os.listdir(ruta_base_pel):
         ruta_categoria = os.path.join(ruta_base_pel, categoria)
-        if os.path.isdir(ruta_categoria) and categoria == tipo:  # Solo para por el 'tipo' que e sla pestaña activa. Por defecto es anatomia
+        if os.path.isdir(ruta_categoria) and categoria == tipo:  # Solo para por el 'tipo' que es la pestaña activa. Por defecto es anatomia
             lista_carpetas[categoria] = {}
             # Recorremos las subcarpetas de cada categoría (PEL clasico, PEL modificado nro 1_TEVD, etc.)
             for subcategoria in os.listdir(ruta_categoria):
@@ -92,18 +110,24 @@ def listar_videos():
                             videos = []
                             for video in os.listdir(ruta_subcarpeta):
                                 if os.path.isfile(os.path.join(ruta_subcarpeta, video)):
-                                    # Construir la URL del video en lugar de la ruta local
-                                    video_url = f"http://localhost:3000/{subcarpeta}/{video}"
-                                    
+                                    # Construir la URL del video con el número único en lugar del nombre del video
+                                    subcarpeta.replace(" ", "_")
+                                    subcarpeta.replace("\\", "/")
+                                    subcategoria.replace(" ", "_")
+
+                                    video_url = f"http://localhost:3000/{marcador}/{categoria}/{subcategoria}/{subcarpeta}/absolute_path/{video_count}"
                                     videos.append({
                                         "videoTitulo": video,
-                                        "dirVideo": video_url#os.path.join(ruta_subcarpeta, video)
+                                        #"dirVideo": os.path.join(ruta_subcarpeta, video),
+                                        "video_url": video_url
                                     })
+                                    video_count += 1  # Incrementar el contador para el próximo video
+                            video_count = 1
                             lista_videos[subcarpeta] = videos
                     lista_carpetas[categoria][subcategoria] = lista_videos
-    
+                
     # Imprimimos la estructura de carpetas y videos
-    #print(lista_carpetas)
+    # print(lista_carpetas)
     return lista_carpetas
     
 def custom_on_key_press(e):
@@ -116,7 +140,7 @@ def custom_on_key_press(e):
 async def handle_client(websocket,path):
     global frontend, mensaje_frontend
     global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
-    global lista_videos, enviar_dataa, patologico_anterior
+    global lista_videos, enviar_dataa, patologico_anterior,relative_directory
         # Define una función que pasa las variables globales a on_key_press
 
     try:
@@ -187,6 +211,7 @@ async def handle_client(websocket,path):
                         lista_videos=listar_videos()
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
+                        continuar_despues_de_actualizar()
 
                         mensaje=dato
                         m=json.dumps(mensaje)
@@ -200,26 +225,97 @@ async def handle_client(websocket,path):
 # Iniciar el servidor WebSocket
 
 keyboard.hook(custom_on_key_press)
-start_server = websockets.serve(handle_client, "localhost", 8765) 
+# start_server = websockets.serve(handle_client, "localhost", 8765) 
+# print("Servidor WebSocket iniciado en ws://localhost:8765")
+
+# Definición del manejador de solicitudes HTTP para servir archivos estáticos
+class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
+    global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
+    def list_files_with_urls(self):
+        files = os.listdir(self.directory)
+        base_url = "http://localhost:3000/"
+        files_with_urls = []
+        file_id = 1
+        for file in files:
+            if os.path.isfile(os.path.join(self.directory, file)):
+                file_name = file.replace(" ", "_")  # Reemplazar espacios por guiones bajos
+                file_path = os.path.abspath(os.path.join(self.directory, file))  # Ruta absoluta del archivo
+                file_url = os.path.join(base_url, "absolute_path", str(file_id)).replace("\\", "/")
+                files_with_urls.append({"id": file_id, "name": file_name, "url": file_url, "absolute_path": file_path})
+                file_id += 1
+        return files_with_urls
+
+    def do_GET(self):
+        global directory_path
+        # Directorio base donde se encuentran los archivos multimedia
+        folder_name = "simulador_edopi_backend"
+        absolute_path = find_folder(folder_name)
+        
+        # Actualizar directory_path antes de servir la solicitud GET
+        if relative_directory is not None:
+            directory_path = os.path.join(absolute_path, relative_directory)
+        else:
+            directory_path = absolute_path
+        
+        name=nombre.replace(" ", "_")
+        mode=modo.replace(" ", "_")
+
+        # Servir la solicitud GET para obtener la lista de archivos
+        if self.path == f'/{marcador}/{tipo}/{name}/{mode}/':
+           
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            files_with_urls = self.list_files_with_urls()
+            response = json.dumps({"files": files_with_urls})
+            self.wfile.write(response.encode('utf-8'))
+        elif self.path.startswith(f'/{marcador}/{tipo}/{name}/{mode}/absolute_path/'):
+            # Obtener el ID del archivo de la URL
+            file_id = int(unquote(self.path.split('/')[-1]))  # Decodificar la URL y obtener el ID del archivo
+            # Buscar el archivo por su ID en la lista de archivos con rutas absolutas
+            for file_info in self.list_files_with_urls():
+                if file_info['id'] == file_id:
+                    # Devolver la ruta absoluta del archivo si se encuentra
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    response = json.dumps({"id": file_info['id'], "name": file_info['name'], "absolute_path": file_info['absolute_path']})
+                    self.wfile.write(response.encode('utf-8'))
+                    return
+            # Devolver un mensaje de error si el archivo no se encuentra
+            self.send_response(404)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write("File not found".encode('utf-8'))
+        
+        else:
+            super().do_GET()
+
+# Puerto para el servidor HTTP
+http_server_port = 3000
+
+# Iniciar el servidor WebSocket
+start_server = websockets.serve(handle_client, "localhost", 8765)
 print("Servidor WebSocket iniciado en ws://localhost:8765")
 
-# Configurar el servidor HTTP para servir archivos multimedia
-class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory="/ruta/a/tu/directorio/de/media", **kwargs)
+# Iniciar el servidor HTTP en un hilo separado
+def start_http_server():
+    try:
+        http_server.serve_forever()
+    except KeyboardInterrupt:
+        http_server.shutdown()
+        http_server.server_close()
 
 http_server_port = 3000
-http_server = HTTPServer(('localhost', http_server_port), MediaHTTPRequestHandler)
+http_server = HTTPServer(('localhost', http_server_port), lambda *args, **kwargs: MediaHTTPRequestHandler(*args, directory=directory_path, **kwargs))
 print(f"Servidor HTTP iniciado en http://localhost:{http_server_port}")
 
-# Ejecutar ambos servidores
-try:
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
-except KeyboardInterrupt:
-    http_server.shutdown()
-    http_server.server_close()
+http_thread = threading.Thread(target=start_http_server)
+http_thread.start()
 
+# Ejecutar el bucle de eventos para el servidor WebSocket
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
 
 
 

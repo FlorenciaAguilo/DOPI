@@ -102,8 +102,10 @@ def on_key_press(e,prediccion,marcador,nombre,dato,patologico,f,tipo,carpeta,mod
             nombre_archivo = cargar_ML_plano(f"{IDvideo} {marcador}", carpeta)
             
             if nombre_archivo is not None:
+                name=nombre.replace(" ", "_")
+                mode=modo.replace(" ", "_")
                 # Construir la URL completa del video
-                dato['dirVideo'] = f"http://localhost:3000/{marcador}/{tipo}/{nombre}/{modo}/{nombre_archivo}"
+                dato['dirVideo'] = f"http://localhost:3000/{marcador}/{tipo}/{name}/{mode}/absolute_path/{IDvideo}"
             else:
                 dato['dirVideo'] = None
         # #dato['dirVideo']=ruta

@@ -45,6 +45,7 @@ def convertir_a_lista(obj):
 def continuar_despues_de_actualizar():
     global relative_directory
     global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
+    
     relative_directory = os.path.join(marcador, tipo, nombre, modo)
     print(relative_directory)
     
@@ -83,6 +84,7 @@ def codigo_modo(codigo):
 
 def listar_videos():
     global modo, marcador, tipo, nombre, modo, lista_videos
+    global relative_directory
     directorio_base = os.path.expanduser("~")  # Obtenemos el directorio base del usuario
     lista_carpetas = {}
 
@@ -111,11 +113,13 @@ def listar_videos():
                             for video in os.listdir(ruta_subcarpeta):
                                 if os.path.isfile(os.path.join(ruta_subcarpeta, video)):
                                     # Construir la URL del video con el número único en lugar del nombre del video
-                                    subcarpeta.replace(" ", "_")
+                                    subcarpeta = subcarpeta.replace(" ", "_")
                                     subcarpeta.replace("\\", "/")
-                                    subcategoria.replace(" ", "_")
+                                    subcategoria = subcategoria.replace(" ", "_")
+                                    categoria = categoria.replace(" ", "_")
 
                                     video_url = f"http://localhost:3000/{marcador}/{categoria}/{subcategoria}/{subcarpeta}/absolute_path/{video_count}"
+                                    
                                     videos.append({
                                         "videoTitulo": video,
                                         #"dirVideo": os.path.join(ruta_subcarpeta, video),
@@ -149,7 +153,6 @@ async def handle_client(websocket,path):
             data=json.loads(message)
             #identifica al frontend
             if "frontClient" in message:
-                print("existe la llave")
                 message=json.loads(message)
 
                 if message.get("frontClient") == True:
@@ -157,6 +160,7 @@ async def handle_client(websocket,path):
                     id_cliente = id(websocket)
                     client[id_cliente] = websocket
                     frontend = client[id_cliente]
+                    await websocket.send("Solicitud recibida. Esperando mensajes:...")
                     
                     
             # Espera hasta recibir la información del marcador
@@ -164,8 +168,22 @@ async def handle_client(websocket,path):
             if 'marcador' in data:
                 marcador = data['marcador']
                 patologico= data['patologia']
-                # Si es la primera vez que se recibe el marcador o el valor de patologico ha cambiado
+
+                if nombre is None and data['Nombre_movimiento']!="":
+                    nombre=data['Nombre_movimiento']
                 
+                if data['btn']=="" and data['IDvideo']==0:
+                    f=0
+                    IDvideo=1
+                else:
+                    f=data['btn']
+                
+                codigo_modo(f)
+                continuar_despues_de_actualizar()
+                
+                
+                
+                # Si es la primera vez que se recibe el marcador o el valor de patologico ha cambiado
                 if enviar_dataa or patologico != patologico_anterior:
                     if patologico == False:
                         tipo = "anatomia"
@@ -208,9 +226,10 @@ async def handle_client(websocket,path):
                         
                         codigo_modo(f)
 
-                        lista_videos=listar_videos()
+                        #lista_videos=listar_videos()
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
+
                         continuar_despues_de_actualizar()
 
                         mensaje=dato
@@ -225,8 +244,6 @@ async def handle_client(websocket,path):
 # Iniciar el servidor WebSocket
 
 keyboard.hook(custom_on_key_press)
-# start_server = websockets.serve(handle_client, "localhost", 8765) 
-# print("Servidor WebSocket iniciado en ws://localhost:8765")
 
 # Definición del manejador de solicitudes HTTP para servir archivos estáticos
 class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -240,7 +257,14 @@ class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
             if os.path.isfile(os.path.join(self.directory, file)):
                 file_name = file.replace(" ", "_")  # Reemplazar espacios por guiones bajos
                 file_path = os.path.abspath(os.path.join(self.directory, file))  # Ruta absoluta del archivo
-                file_url = os.path.join(base_url, "absolute_path", str(file_id)).replace("\\", "/")
+                # file_url = os.path.join(base_url, "absolute_path", str(file_id)).replace("\\", "/")
+                            # Remover la parte de la ruta base del servidor HTTP de la ruta completa del archivo
+                file_url = os.path.relpath(file_path, os.path.join(os.path.expanduser("~"), "Desktop", "simulador_edopi_backend"))
+                file_url = os.path.dirname(file_url)
+                file_url = os.path.join(base_url,file_url,"absolute_path", str(file_id))  # Construir la URL completa
+                
+                file_url = file_url.replace("\\", "/")  # Reemplazar las barras invertidas por barras inclinadas
+                file_url = file_url.replace(" ", "_")
                 files_with_urls.append({"id": file_id, "name": file_name, "url": file_url, "absolute_path": file_path})
                 file_id += 1
         return files_with_urls
@@ -291,9 +315,6 @@ class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
-# Puerto para el servidor HTTP
-http_server_port = 3000
-
 # Iniciar el servidor WebSocket
 start_server = websockets.serve(handle_client, "localhost", 8765)
 print("Servidor WebSocket iniciado en ws://localhost:8765")
@@ -313,9 +334,16 @@ print(f"Servidor HTTP iniciado en http://localhost:{http_server_port}")
 http_thread = threading.Thread(target=start_http_server)
 http_thread.start()
 
-# Ejecutar el bucle de eventos para el servidor WebSocket
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+try:
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+except KeyboardInterrupt:
+    # Detener el servidor WebSocket y,
+    # Detener el servidor HTTP
+    http_server.shutdown()
+    http_server.server_close()
+    http_thread.join()
+    start_server.ws_server.close()
 
 
 

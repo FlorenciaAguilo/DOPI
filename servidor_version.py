@@ -47,7 +47,6 @@ def continuar_despues_de_actualizar():
     global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
     
     relative_directory = os.path.join(marcador, tipo, nombre, modo)
-    print(relative_directory)
     
 # Define una bandera para verificar si el mensaje ya se envió
 enviar_dataa=True
@@ -117,6 +116,7 @@ def listar_videos():
                                     subcarpeta.replace("\\", "/")
                                     subcategoria = subcategoria.replace(" ", "_")
                                     categoria = categoria.replace(" ", "_")
+                                    
 
                                     video_url = f"http://localhost:3000/{marcador}/{categoria}/{subcategoria}/{subcarpeta}/absolute_path/{video_count}"
                                     
@@ -133,11 +133,13 @@ def listar_videos():
     # Imprimimos la estructura de carpetas y videos
     # print(lista_carpetas)
     return lista_carpetas
+
+
     
-def custom_on_key_press(e):
+def custom_on_key_press():
     global f, data, dato, ruta, modo, carpeta, IDvideo, marcador, patologico, nombre, tipo, prediccion
     prediccion, marcador, nombre, dato, patologico, f, tipo, carpeta, modo, IDvideo, ruta = on_key_press(
-        e, prediccion, marcador, nombre, dato, patologico, f, tipo, carpeta, modo, IDvideo, ruta
+     prediccion, marcador, nombre, dato, patologico, f, tipo, carpeta, modo, IDvideo, ruta
     )
 
 
@@ -169,8 +171,8 @@ async def handle_client(websocket,path):
                 marcador = data['marcador']
                 patologico= data['patologia']
 
-                if nombre is None and data['Nombre_movimiento']!="":
-                    nombre=data['Nombre_movimiento']
+                #if nombre is None and data['Nombre_movimiento']!="":
+                nombre=data['Nombre_movimiento']
                 
                 if data['btn']=="" and data['IDvideo']==0:
                     f=0
@@ -180,9 +182,7 @@ async def handle_client(websocket,path):
                 
                 codigo_modo(f)
                 continuar_despues_de_actualizar()
-                
-                
-                
+            
                 # Si es la primera vez que se recibe el marcador o el valor de patologico ha cambiado
                 if enviar_dataa or patologico != patologico_anterior:
                     if patologico == False:
@@ -191,6 +191,7 @@ async def handle_client(websocket,path):
                         tipo = "patologia"
 
                     lista_videos = listar_videos()
+                    continuar_despues_de_actualizar()
                     dataa = {"vista": marcador, "estructura": lista_videos}
                     msj = json.dumps(dataa)
                     await frontend.send(msj)
@@ -205,7 +206,7 @@ async def handle_client(websocket,path):
 
             if mensaje_frontend is not None:
                 if frontend is not None:                    
-                    
+                    lista_videos = listar_videos()
                     if 'patologia' in mensaje_frontend:
 
                         patologico=mensaje_frontend['patologia']
@@ -229,7 +230,8 @@ async def handle_client(websocket,path):
                         #lista_videos=listar_videos()
                         if mensaje_frontend['Nombre_movimiento']!="":
                             nombre=mensaje_frontend['Nombre_movimiento']
-
+                        
+                        custom_on_key_press()
                         continuar_despues_de_actualizar()
 
                         mensaje=dato
@@ -241,14 +243,18 @@ async def handle_client(websocket,path):
         # Remover cliente de la lista de clientes conectados cuando se desconecta
         frontend=None
 
-# Iniciar el servidor WebSocket
+# # Iniciar el servidor WebSocket
 
-keyboard.hook(custom_on_key_press)
+# keyboard.hook(custom_on_key_press)
 
 # Definición del manejador de solicitudes HTTP para servir archivos estáticos
 class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
-    global f,data,dato,ruta,modo,carpeta,IDvideo, IDvideo,marcador,patologico,nombre,tipo
+    global f,data,dato,ruta,modo,carpeta, IDvideo,marcador,patologico,nombre,tipo
+    global relative_directory
+    continuar_despues_de_actualizar()
     def list_files_with_urls(self):
+    # Especifica manualmente la ruta base que deseas utilizars
+        # Utiliza la ruta base especificada en lugar del directorio actual
         files = os.listdir(self.directory)
         base_url = "http://localhost:3000/"
         files_with_urls = []
@@ -281,12 +287,16 @@ class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
         else:
             directory_path = absolute_path
         
+        continuar_despues_de_actualizar()
         name=nombre.replace(" ", "_")
         mode=modo.replace(" ", "_")
+        # Actualizar la ruta base antes de obtener la lista de archivos
+        self.directory = directory_path
 
         # Servir la solicitud GET para obtener la lista de archivos
         if self.path == f'/{marcador}/{tipo}/{name}/{mode}/':
-           
+
+            continuar_despues_de_actualizar()
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
@@ -294,6 +304,7 @@ class MediaHTTPRequestHandler(SimpleHTTPRequestHandler):
             response = json.dumps({"files": files_with_urls})
             self.wfile.write(response.encode('utf-8'))
         elif self.path.startswith(f'/{marcador}/{tipo}/{name}/{mode}/absolute_path/'):
+
             # Obtener el ID del archivo de la URL
             file_id = int(unquote(self.path.split('/')[-1]))  # Decodificar la URL y obtener el ID del archivo
             # Buscar el archivo por su ID en la lista de archivos con rutas absolutas

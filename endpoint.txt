@@ -1,0 +1,11 @@
+http://localhost:5000/get_all_urls   ---------> obtengo todas las url de los videos dependiendo la vista activa
+
+						
+
+http://localhost:5000/videos/<ruta_absoluta_archivo>   ---------> accedo un archivo. con este endpoint puedo 
+								  reproducir directamente el video .mp4 desde 
+								   el navegador.
+									
+								  ejemplo: http://localhost:5000/videos/Ap5C/Modo_Doppler_Continuo/2_Ap5C_DCt_VAo.mp4  
+
+ejecutar en consola de ngrok: ngrok http 5000
